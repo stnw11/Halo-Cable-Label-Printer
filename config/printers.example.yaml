@@ -1,0 +1,47 @@
+# Physical media geometry for the Brady Wraptor A6200.
+#
+# There is deliberately NO printer address here. The Docker service never
+# talks to the printer -- it writes a print-ready document to the queue
+# share, and the Windows agent prints it through the Brady driver. The
+# printer's identity lives in winagent/config/agent.yaml.
+#
+# Copy this file to printers.yaml and edit it. printers.yaml is gitignored.
+
+printer:
+  # Set to true ONLY after you have physically measured your stock and
+  # read the DPI off the printer. Media geometry cannot be guessed and
+  # cannot be validated by software -- the service refuses to start while
+  # this is false, so that a forgotten measurement fails loudly at startup
+  # instead of quietly producing a run of unreadable labels.
+  configured: false
+
+  dpi: 300                      # read this off YOUR printer's status page
+
+  # Self-laminating wrap media has two parts: an opaque PRINTED zone that
+  # carries the legend, and a clear overlaminate tail that wraps over it to
+  # protect the print. Only the printed zone is usable area.
+  #
+  # label_*      = the overall die-cut label, printed zone + clear tail
+  # print_area_* = the opaque printed zone alone
+  #
+  # PLACEHOLDERS in the shape of a common cable wrap. Measure yours.
+  label_width_in: 2.0
+  label_height_in: 0.75
+  print_area_width_in: 1.0
+  print_area_height_in: 0.5
+
+  # WHERE the printed zone sits, as the offset of its lower-left corner
+  # from the label's lower-left corner. Leave blank to centre it.
+  #
+  # Centring is right for die-cut stock printed edge to edge. It is WRONG
+  # for self-laminating wrap, where the opaque printed area is at one END
+  # and the clear tail extends from it so it can fold over the print. On
+  # that stock the offset is usually 0 on the axis the tail runs along.
+  # Getting this wrong puts half the legend onto the laminate, where it is
+  # either invisible or wrapped onto the wrong face of the cable.
+  print_area_x_in:              # blank = centred
+  print_area_y_in:              # blank = centred
+
+  margin_in: 0.03               # keeps glyphs off the die-cut edge
+
+  # No orientation setting: the page is whatever the dimensions above say.

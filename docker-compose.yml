@@ -1,0 +1,36 @@
+# Image/service names stay lowercase-kebab; the repo is Halo-Cable-Label-Printer.
+services:
+  halo-cable-label-printer:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config:/app/config:ro
+      # The print queue: the SMB share hosted by the Windows print host,
+      # mounted by Docker itself from the cable-queue volume below. Nothing
+      # is mounted on the Docker host, and the credentials stay in .env.
+      - cable-queue:/mnt/cable-queue
+    healthcheck:
+      # main.py touches /tmp/heartbeat each poll; unhealthy if stale for
+      # > 3 poll intervals (45s at the default 15s -- keep in sync)
+      test: ["CMD", "python", "-c", "import os,sys,time; sys.exit(0 if time.time()-os.path.getmtime('/tmp/heartbeat')<45 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+# The queue share. Docker mounts it when the container starts, using the
+# SMB_* settings from .env. uid/gid 1000 is the container's appuser, which
+# must be able to write jobs and move results. The container is the ONLY
+# thing that writes this share from the Docker side, so it is the only mount.
+#
+# The volume's options are captured when Docker first creates it. After
+# changing any SMB_* value, recreate it:
+#   docker compose down && docker volume rm halo-cable-label-printer_cable-queue
+volumes:
+  cable-queue:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: "//${SMB_HOST:?set SMB_HOST in .env}/${SMB_SHARE:?set SMB_SHARE in .env}"
+      o: "username=${SMB_USER:?set SMB_USER in .env},password=${SMB_PASS:?set SMB_PASS in .env}${SMB_DOMAIN:+,domain=${SMB_DOMAIN}},uid=1000,gid=1000,vers=3.0"

@@ -1,0 +1,33 @@
+# How a cable identifier is spelled and laid out.
+#
+# Copy this file to layout.yaml and edit it. layout.yaml is gitignored.
+
+layout:
+  # Identifier format: <prefix><separator><zero-padded number>, e.g. BL-0100.
+  separator: "-"
+  pad_width: 4
+
+  # A prefix must match this to be accepted. Alphanumeric only by default,
+  # which is what makes a queue filename unambiguous to parse and keeps
+  # path-unsafe characters out of file names. The separator must NOT be
+  # allowed by this pattern; the service refuses to start if it is.
+  prefix_pattern: "^[A-Za-z0-9]{1,8}$"
+
+  # Any font reportlab can resolve. The built-in Helvetica family needs no
+  # font file and is a safe default.
+  font: "Helvetica-Bold"
+
+  # The legibility floor. An identifier that cannot be rendered at or above
+  # min_font_pt is REFUSED rather than shrunk -- a label nobody can read is
+  # worse than a request that fails with a clear message.
+  min_font_pt: 5.0
+  max_font_pt: 12.0
+
+  # The legend is printed as this many lines, stacked directly above one
+  # another and each the full width of the printed zone, so the identifier
+  # can be read from either side once the label is wrapped around a cable.
+  # Each extra line divides the printed zone's HEIGHT, which caps the font
+  # size; if identifiers stop fitting, turn this down first.
+  legend_repeat: 2
+  # Vertical space between the stacked lines.
+  legend_gap_in: 0.08

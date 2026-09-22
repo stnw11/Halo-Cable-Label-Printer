@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/stnw11/Halo-Cable-Label-Printer/protocol/job_schema.json",
+  "title": "Halo-Cable-Label-Printer queue protocol",
+  "description": "The contract between the Docker half (which writes jobs) and the Windows agent (which prints them). Both halves validate against this file; it is the single source of truth for the queue protocol. See spec section 6.",
+  "$defs": {
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version", "job_id", "created_utc", "source", "reprint",
+        "prefix", "first_number", "last_number", "cable_count",
+        "labels_per_cable", "label_count", "payload_file", "payload_sha256",
+        "payload_bytes", "render_format", "dpi",
+        "page_width_in", "page_height_in"
+      ],
+      "properties": {
+        "protocol_version": {"type": "integer", "const": 1},
+        "job_id": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"},
+        "created_utc": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+        "source": {"enum": ["poll", "reprint", "test"]},
+        "reprint": {"type": "boolean"},
+        "halo_asset_id": {
+          "type": ["integer", "null"],
+          "description": "Absent or null for reprints run without --asset-id, and for test jobs. reconcile.py writes no status line when this is null (spec 5.5)."
+        },
+        "job_name": {"type": "string", "minLength": 1, "maxLength": 200,
+          "description": "What the printer shows in its stored-job list, e.g. 'Blue CAT6 - BL-0100...BL-0102'. Optional: an agent falls back to the payload filename."},
+        "prefix": {"type": "string", "minLength": 1, "maxLength": 32},
+        "first_number": {"type": "integer", "minimum": 0},
+        "last_number": {"type": "integer", "minimum": 0},
+        "cable_count": {"type": "integer", "minimum": 1},
+        "labels_per_cable": {"type": "integer", "minimum": 1},
+        "label_count": {"type": "integer", "minimum": 1},
+        "payload_file": {"type": "string", "minLength": 1},
+        "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload_bytes": {"type": "integer", "minimum": 1},
+        "render_format": {"const": "png"},
+        "dpi": {"type": "integer", "minimum": 1},
+        "page_width_in": {"type": "number", "exclusiveMinimum": 0},
+        "page_height_in": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "job_id", "status", "agent_host", "finished_utc"],
+      "properties": {
+        "protocol_version": {"type": "integer", "const": 1},
+        "job_id": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"},
+        "status": {
+          "enum": ["success", "failed", "rejected"],
+          "description": "success means the document was handed to the Windows print subsystem without error. It does NOT mean ink reached media; no driver-mediated path can promise that (spec 6.4)."
+        },
+        "agent_host": {"type": "string", "minLength": 1},
+        "started_utc": {"type": ["string", "null"]},
+        "finished_utc": {"type": "string"},
+        "labels_submitted": {"type": ["integer", "null"], "minimum": 0},
+        "backend": {"type": ["string", "null"]},
+        "error": {"type": ["string", "null"]},
+        "job": {
+          "type": ["object", "null"],
+          "description": "A copy of the job sidecar, echoed back so reconcile.py can build a status line even when the original sidecar has already been moved out of inbox/. Optional: a rejected job may not have a parseable sidecar to echo."
+        }
+      }
+    }
+  },
+  "oneOf": [{"$ref": "#/$defs/job"}, {"$ref": "#/$defs/result"}]
+}

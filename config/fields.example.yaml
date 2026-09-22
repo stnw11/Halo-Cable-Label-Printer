@@ -1,0 +1,38 @@
+# The four Halo custom fields the service uses, one entry per role.
+#
+# `id` is how the field is found: the numeric custom field id from Halo
+# (Configuration > Custom Fields). It is required and has no default. Ids
+# are used rather than names because Halo matches names case-sensitively and
+# a mismatch does not error -- it simply finds nothing, forever.
+#
+# `name` is the field's name exactly as Halo shows it. It is not used to
+# find anything. It appears in error messages, and tools/check_halo.py
+# checks it against Halo so that a wrong id is caught at setup rather than
+# by the service writing to the wrong field.
+#
+# The prefix may be a text field or a dropdown; a dropdown's option TEXT is
+# used, not its index.
+#
+# Copy this file to fields.yaml and edit it. fields.yaml is gitignored.
+
+fields:
+  qty:                            # the trigger; agent-editable
+    id:
+    name: "Cables to Label"
+  prefix:                         # read only by the service, never written
+    id:
+    name: "Cable ID Prefix"
+  next_id:                        # the counter; written by the service
+    id:
+    name: "Next Cable ID"
+  status:                         # the service's status line
+    id:
+    name: "Last Label Run"
+
+  # Optional. Only used to name the print job, e.g.
+  # "Blue CAT6 - BL-0100...BL-0102", which is what someone reads when
+  # picking the job on the printer. Leave the id blank if the asset type has
+  # no colour field; the name simply drops the colour.
+  color:
+    id:
+    name: "Cable Color"

@@ -1,0 +1,110 @@
+# =============================================================================
+# Halo-Cable-Label-Printer -- .gitignore
+#
+# This project is released under MIT and must contain NO site-specific values
+# in any committed file (see Section 8 of the working spec). Everything below
+# is either a secret, a live deployment value, a machine-local artifact, or
+# something a technician's own tooling drops into the checkout.
+#
+# The rule for config: *.example.* files ARE committed and are the templates.
+# The live copies next to them never are.
+# =============================================================================
+
+# --- Secrets and operational settings ----------------------------------------
+# .env holds Halo client id/secret and the share credentials.
+# See .env.example for the committed template.
+.env
+.env.*
+!.env.example
+
+# SMB/CIFS mount credentials, however they end up being named.
+*.cred
+*.creds
+credentials
+smbcredentials
+
+# --- Live deployment config (Docker half) ------------------------------------
+# config/*.example.yaml are the committed templates; the live copies are not.
+config/*.yaml
+!config/*.example.yaml
+
+# --- Live deployment config (Windows agent half) -----------------------------
+winagent/config/*.yaml
+!winagent/config/*.example.yaml
+
+# --- The working spec --------------------------------------------------------
+# Appendix A of the spec is where live deployment values are recorded -- the
+# tenant URL, field ids, share paths, printer name, prefixes in use. Same
+# precedent as Halo-Asset-Tag-Printer: the spec is a working document, not a
+# repo artifact. Keep it locally; do not commit it.
+halo-cable-label-print-spec.md
+
+# --- The print queue ---------------------------------------------------------
+# QUEUE_ROOT is configured to a real share in production, but it is easy to
+# point it at a folder inside the checkout while testing. Jobs contain real
+# cable identifiers and real Halo asset ids.
+queue/
+cable-queue/
+CableLabelQueue/
+**/inbox/
+**/processing/
+**/done/
+**/failed/
+**/results/
+.tmp/
+
+# --- Agent runtime state -----------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+ledger.sqlite*
+.agent/
+
+# --- Rendered label output ---------------------------------------------------
+# tools/render_test_block.py and tools/reprint_range.py write here. These
+# contain real cable identifiers. Keep render output inside out/.
+out/
+output/
+*.label.pdf
+*.label.png
+
+# --- Logs --------------------------------------------------------------------
+*.log
+logs/
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# --- Vendored third-party binaries -------------------------------------------
+# Adopters supply their own SumatraPDF / NSSM for the Windows agent; we do not
+# redistribute them.
+winagent/bin/
+*.exe
+*.msi
+
+# --- Editor / OS -------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# The share settings install.ps1 writes on the print host, copied here to
+# load into .env. Site-specific, so never committed.
+queue-share.env
+
+# Brady Workstation label designs. Site artifacts: they embed the part
+# library, printer queue names, and the designer's file paths.
+*.bws
+*.BWS

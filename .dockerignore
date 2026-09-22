@@ -1,0 +1,15 @@
+# The Dockerfile copies only protocol/, src/ and tools/. Keep everything
+# else -- especially .env and the virtualenv -- out of the build context.
+.env
+.env.*
+.git/
+.venv/
+venv/
+**/__pycache__/
+.pytest_cache/
+out/
+queue/
+tests/
+winagent/
+config/
+*.md

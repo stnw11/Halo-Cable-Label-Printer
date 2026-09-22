@@ -1,0 +1,6 @@
+PyYAML>=6.0,<7
+jsonschema>=4.20,<5
+watchdog>=4.0,<7
+# The gdi backend draws the rendered label image onto the printer.
+pillow>=10.0,<13
+pywin32>=306; sys_platform == "win32"

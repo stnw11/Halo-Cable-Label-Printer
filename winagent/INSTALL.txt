@@ -1,0 +1,57 @@
+HALO CABLE LABEL PRINT AGENT - INSTALL
+======================================
+
+This folder is everything the Windows print host needs. Copy the whole
+folder anywhere on the print host, e.g. the Desktop.
+
+1. Open PowerShell as administrator (right-click > Run as administrator).
+
+2. Change to this folder and run the installer, naming the account the
+   Docker side will use to connect to the queue share:
+
+       cd <this folder>
+       powershell -ExecutionPolicy Bypass -File .\install.ps1 -ShareAccount 'DOMAIN\svc-cablelabel'
+
+   It installs everything under C:\HaloCableLabel:
+       agent\   the agent code, config and nssm.exe
+       queue\   the print queue, shared as \\<this host>\CableLabelQueue
+
+   It also sets permissions, opens the firewall for file sharing, installs
+   Python if needed, and installs and starts the agent service.
+
+3. Copy C:\HaloCableLabel\queue-share.env to the Docker project folder
+   and run there:
+
+       python tools/import_share_config.py queue-share.env
+
+   It puts the share settings into .env and asks for the share account's
+   password. The password is never written to queue-share.env.
+
+UPDATING LATER
+--------------
+For a machine that is already set up, unzip the new package and
+double-click update.cmd in this folder. It asks for administrator rights,
+reads the existing install's settings (queue, share, accounts, printer)
+and reinstalls with them. Nothing to type.
+
+If the printer has been renamed, update the queue name at the same time:
+    powershell -ExecutionPolicy Bypass -File .\winagent\update.ps1 -PrinterName '<new name>'
+
+
+This folder can be deleted once the install has finished; everything the
+agent needs has been copied to C:\HaloCableLabel\agent.
+
+The agent prints through the printer's own driver; nothing else is needed
+on this machine. To prove the pipeline without using any media, install
+with -Backend null, which checks and logs jobs but sends none of them on.
+
+Options: -InstallRoot (default C:\HaloCableLabel), -ShareName (default
+CableLabelQueue), -ServiceAccount (default LocalSystem; a real printer
+needs an account that can see it), -PrinterName (the exact queue name from
+Get-Printer, written into agent.yaml).
+
+If Python 3.12 is installed for your user only, the installer stops and
+says so: the service needs Python installed for all users, and Python
+cannot have the same version installed both ways. Re-run with
+-ReplaceUserPython to have it remove the per-user copy and install it for
+all users.

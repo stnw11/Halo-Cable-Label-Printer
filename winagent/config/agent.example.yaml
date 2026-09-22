@@ -1,0 +1,47 @@
+# Windows print agent configuration.
+# Copy to agent.yaml and edit. agent.yaml is gitignored.
+
+# The LOCAL path to the queue on this machine -- not a UNC path. This machine
+# HOSTS the share; the Docker service is the one that reaches it over the
+# network. Watching a local folder is reliable; watching a share is not.
+queue_root: 'C:\HaloCableLabel\queue'
+
+# The exact Windows printer QUEUE name, as Get-Printer lists it -- not the
+# driver or model name. A network Wraptor usually appends its serial, e.g.
+# 'Wraptor A6200-PGA000000000000', and the name changes if the printer is
+# renamed or reconnected. install.ps1 -PrinterName '<name>' writes it here.
+#
+# The agent refuses to start if this does not resolve, and lists the printers
+# it CAN see, because a driver installed under an interactive admin session
+# is often invisible to a service account.
+printer_name: 'Wraptor A6200'
+
+#   gdi   draws the rendered image straight through the Windows driver.
+#         Needs nothing on this machine but the driver. The default.
+#   null  prints nothing: it checks and logs every job and sends none of
+#         them on. Useful for proving the pipeline without using media, and
+#         for reproducing a queue problem. install.ps1 -Backend null.
+backend: 'gdi'
+
+# The agent refuses to start if printer_name is not visible to it. That check
+# is skipped automatically when backend is 'null' (which prints nothing), so
+# the whole pipeline can be verified before the Brady driver is installed.
+# Set this to true only if you need to bypass the check on a real backend.
+skip_printer_check: false
+
+# How long to leave between handing one job to the printer and the next.
+# The Wraptor stores each job for someone to select, takes a while to ingest
+# a big one, and SILENTLY DROPS a job that arrives while it is busy: four
+# 500-label jobs sent within a minute left only the first on the printer,
+# and Windows reported all four as printed. Spacing them out fixed it.
+# 0 disables the wait.
+job_interval_seconds: 60
+
+sidecar_grace_seconds: 10
+print_timeout_seconds: 120
+retain_done_days: 30
+poll_seconds: 5
+
+ledger_path: ''      # defaults to <queue_root>\.agent\ledger.sqlite
+log_path: ''         # defaults to <queue_root>\.agent\agent.log
+log_level: 'INFO'
