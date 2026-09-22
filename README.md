@@ -9,10 +9,10 @@ The service owns the numbering. A technician never picks a number. That is
 the point: cable identifiers must be unique, and the only way to guarantee
 that is to make one process the sole allocator.
 
-> **Status: pre-release.** The pipeline works end to end, and labels print
-> and apply correctly on a Wraptor A6200. What is left is running it in
-> anger: a full request from inside Halo on a real cable type, and the
-> operational shake-out that follows. See "What is verified" below.
+> **Status: v1.0.0.** Verified end to end on a Wraptor A6200: labels print
+> and apply correctly, and requests of any size are split into batches
+> automatically. See "What is verified" below, and
+> [DEPLOYMENT.md](DEPLOYMENT.md) for the ordered install.
 
 ## How it works
 
@@ -275,12 +275,14 @@ so printing them on return is correct and intentional.
 
 | | |
 |---|---|
-| Allocation, queue protocol, agent logic | Covered by 243 automated tests |
+| Allocation, queue protocol, agent logic | Covered by the automated suite (266 tests at v1.0.0) |
 | Full cycle, Halo field to status line | Verified against a live Halo tenant |
 | Page size and layout | Verified by reading the rendered output back, and on media |
 | Docker image | Builds and runs; verified against a live tenant |
 | Queue over SMB to the print host | Verified; jobs are picked up in about a second |
 | **Physical print on a Wraptor A6200** | **Verified: labels print and apply correctly** |
+| **Requests from inside Halo** | **Verified on hardware: multiple cable types, including 1000-cable requests split into 250-cable batches** |
+| Behaviour when the print host goes away | Verified: the queue waits, waiting assets are marked `STALLED`, and the service refuses to start until the share is back |
 | Which driver path to use | Settled: the agent draws the rendered image through the printer's own driver (`gdi`) |
 | **Media geometry** | **Yours to set. These values match one Brady part; measure or check your own.** |
 
